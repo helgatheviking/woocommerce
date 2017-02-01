@@ -54,6 +54,43 @@ class WC_Product_Data_Store_CPT extends WC_Data_Store_WP implements WC_Object_Da
 	);
 
 	/**
+	 * Maps properties to meta keys.
+	 * @var array
+	 */
+	protected $props_to_meta_keys = array(
+		'sku'               => '_sku',
+		'regular_price'     => '_regular_price',
+		'sale_price'        => '_sale_price',
+		'date_on_sale_from' => '_sale_price_dates_from',
+		'date_on_sale_to'   => '_sale_price_dates_to',
+		'total_sales'       => 'total_sales',
+		'tax_status'        => '_tax_status',
+		'tax_class'         => '_tax_class',
+		'manage_stock'      => '_manage_stock',
+		'backorders'        => '_backorders',
+		'sold_individually' => '_sold_individually',
+		'weight'            => '_weight',
+		'length'            => '_length',
+		'width'             => '_width',
+		'height'            => '_height',
+		'upsell_ids'        => '_upsell_ids',
+		'cross_sell_ids'    => '_crosssell_ids',
+		'purchase_note'     => '_purchase_note',
+		'default_attributes'=> '_default_attributes',
+		'virtual'           => '_virtual',
+		'downloadable'      => '_downloadable',
+		'gallery_image_ids' => '_product_image_gallery',
+		'download_limit'    => '_download_limit',
+		'download_expiry'   => '_download_expiry',
+		'image_id'          => '_thumbnail_id',
+		'stock_quantity'    => '_stock',
+		'stock_status'      => '_stock_status',
+		'average_rating'    => '_wc_average_rating',
+		'rating_counts'     => '_wc_rating_count',
+		'review_count'      => '_wc_review_count',
+	);
+
+	/**
 	 * If we have already saved our extra data, don't do automatic / default handling.
 	 */
 	protected $extra_data_saved = false;
@@ -272,8 +309,9 @@ class WC_Product_Data_Store_CPT extends WC_Data_Store_WP implements WC_Object_Da
 	protected function read_extra_data( &$product ) {
 		foreach ( $product->get_extra_data_keys() as $key ) {
 			$function = 'set_' . $key;
+			$meta_key = isset( $this->extra_props_to_meta_keys[ $key ] ) ? $this->extra_props_to_meta_keys[ $key ] : '_' . $key;
 			if ( is_callable( array( $product, $function ) ) ) {
-				$product->{$function}( get_post_meta( $product->get_id(), '_' . $key, true ) );
+				$product->{$function}( get_post_meta( $product->get_id(), $meta_key, true ) );
 			}
 		}
 	}
@@ -371,47 +409,12 @@ class WC_Product_Data_Store_CPT extends WC_Data_Store_WP implements WC_Object_Da
 	 */
 	protected function update_post_meta( &$product ) {
 		$updated_props     = array();
-		$meta_key_to_props = array(
-			'_sku'                   => 'sku',
-			'_regular_price'         => 'regular_price',
-			'_sale_price'            => 'sale_price',
-			'_sale_price_dates_from' => 'date_on_sale_from',
-			'_sale_price_dates_to'   => 'date_on_sale_to',
-			'total_sales'            => 'total_sales',
-			'_tax_status'            => 'tax_status',
-			'_tax_class'             => 'tax_class',
-			'_manage_stock'          => 'manage_stock',
-			'_backorders'            => 'backorders',
-			'_sold_individually'     => 'sold_individually',
-			'_weight'                => 'weight',
-			'_length'                => 'length',
-			'_width'                 => 'width',
-			'_height'                => 'height',
-			'_upsell_ids'            => 'upsell_ids',
-			'_crosssell_ids'         => 'cross_sell_ids',
-			'_purchase_note'         => 'purchase_note',
-			'_default_attributes'    => 'default_attributes',
-			'_virtual'               => 'virtual',
-			'_downloadable'          => 'downloadable',
-			'_product_image_gallery' => 'gallery_image_ids',
-			'_download_limit'        => 'download_limit',
-			'_download_expiry'       => 'download_expiry',
-			'_thumbnail_id'          => 'image_id',
-			'_stock'                 => 'stock_quantity',
-			'_stock_status'          => 'stock_status',
-			'_wc_average_rating'     => 'average_rating',
-			'_wc_rating_count'       => 'rating_counts',
-			'_wc_review_count'       => 'review_count',
-		);
 
-		// Make sure to take extra data (like product url or text for external products) into account.
-		$extra_data_keys = $product->get_extra_data_keys();
-		foreach ( $extra_data_keys as $key ) {
-			$meta_key_to_props[ '_' . $key ] = $key;
-		}
+		$props_to_meta_keys = array_merge( $this->props_to_meta_keys, $this->extra_props_to_meta_keys );
 
-		$props_to_update = $this->get_props_to_update( $product, $meta_key_to_props );
-		foreach ( $props_to_update as $meta_key => $prop ) {
+		$props_to_update = $this->get_props_to_update( $product, $props_to_meta_keys );
+
+		foreach ( $props_to_update as $prop => $meta_key ) {
 			$value = $product->{"get_$prop"}( 'edit' );
 			switch ( $prop ) {
 				case 'virtual' :
@@ -432,7 +435,7 @@ class WC_Product_Data_Store_CPT extends WC_Data_Store_WP implements WC_Object_Da
 					$updated = true;
 					break;
 				default :
-					$updated = update_post_meta( $product->get_id(), $meta_key, $value );
+					$updated = in_array( $prop, $this->props_to_meta_keys ) ? update_post_meta( $product->get_id(), $meta_key, $value ) : false;
 					break;
 			}
 			if ( $updated ) {
@@ -460,14 +463,15 @@ class WC_Product_Data_Store_CPT extends WC_Data_Store_WP implements WC_Object_Da
 
 		// Update extra data associated with the product like button text or product URL for external products.
 		if ( ! $this->extra_data_saved ) {
-			foreach ( $extra_data_keys as $key ) {
-				if ( ! array_key_exists( $key, $props_to_update ) ) {
-					continue;
-				}
-				$function = 'get_' . $key;
+
+			// Make sure to take extra data (like product url or text for external products) into account.
+			$extra_data = array_intersect_key( $props_to_update, array_flip( $product->get_extra_data_keys() ) );
+
+			foreach ( $extra_data as $prop => $meta_key ) {
+				$function = 'get_' . $prop;
 				if ( is_callable( array( $product, $function ) ) ) {
-					if ( update_post_meta( $product->get_id(), '_' . $key, $product->{$function}( 'edit' ) ) ) {
-						$updated_props[] = $key;
+					if ( update_post_meta( $product->get_id(), $meta_key, $product->{$function}( 'edit' ) ) ) {
+						$updated_props[] = $prop;
 					}
 				}
 			}

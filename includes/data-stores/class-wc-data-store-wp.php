@@ -38,6 +38,20 @@ class WC_Data_Store_WP {
 	protected $internal_meta_keys = array();
 
 	/**
+	 * Maps properties to meta keys.
+	 * @since 2.7.0
+	 * @var array
+	 */
+	protected $props_to_meta_keys = array();
+
+	/**
+	 * Maps extra data properties to meta keys.
+	 * @since 2.7.0
+	 * @var array
+	 */
+	protected $extra_props_to_meta_keys = array();
+
+	/**
 	 * Get and store terms from a taxonomy.
 	 *
 	 * @since  2.7.0
@@ -170,18 +184,18 @@ class WC_Data_Store_WP {
 	 * or if they are present in the database or not.
 	 *
 	 * @param  WC_Data $object              The WP_Data object (WC_Coupon for coupons, etc).
-	 * @param  array   $meta_key_to_props   A mapping of meta keys => prop names.
+	 * @param  array   $props_to_meta_keys   A mapping of prop names => meta keys.
 	 * @param  string  $meta_type           The internal WP meta type (post, user, etc).
 	 * @return array                        A mapping of meta keys => prop names, filtered by ones that should be updated.
 	 */
-	protected function get_props_to_update( $object, $meta_key_to_props, $meta_type = 'post' ) {
+	protected function get_props_to_update( $object, $props_to_meta_keys, $meta_type = 'post' ) {
 		$props_to_update = array();
 		$changed_props   = $object->get_changes();
 
 		// Props should be updated if they are a part of the $changed array or don't exist yet.
-		foreach ( $meta_key_to_props as $meta_key => $prop ) {
+		foreach ( $props_to_meta_keys as $prop => $meta_key ) {
 			if ( array_key_exists( $prop, $changed_props ) || ! metadata_exists( $meta_type, $object->get_id(), $meta_key ) ) {
-				$props_to_update[ $meta_key ] = $prop;
+				$props_to_update[ $prop ] = $meta_key;
 			}
 		}
 

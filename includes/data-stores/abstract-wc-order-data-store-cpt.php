@@ -38,6 +38,22 @@ abstract class Abstract_WC_Order_Data_Store_CPT extends WC_Data_Store_WP impleme
 		'_payment_tokens',
 	);
 
+	/**
+	 * Maps properties to meta keys.
+	 * @var array
+	 */
+	protected $props_to_meta_keys = array(
+		'currency'          =>	'_order_currency',
+		'discount_total'    =>	'_cart_discount',
+		'discount_tax'      =>	'_cart_discount_tax' ,
+		'shipping_total'    =>	'_order_shipping',
+		'shipping_tax'      =>	'_order_shipping_tax',
+		'cart_tax'          =>	'_order_tax',
+		'total'             =>	'_order_total',
+		'version'           =>	'_order_version',
+		'prices_include_tax'=>	'_prices_include_tax',
+	);
+
 	/*
 	|--------------------------------------------------------------------------
 	| CRUD Methods
@@ -209,20 +225,9 @@ abstract class Abstract_WC_Order_Data_Store_CPT extends WC_Data_Store_WP impleme
 	 */
 	protected function update_post_meta( &$order ) {
 		$updated_props     = array();
-		$meta_key_to_props = array(
-			'_order_currency'     => 'currency',
-			'_cart_discount'      => 'discount_total',
-			'_cart_discount_tax'  => 'discount_tax',
-			'_order_shipping'     => 'shipping_total',
-			'_order_shipping_tax' => 'shipping_tax',
-			'_order_tax'          => 'cart_tax',
-			'_order_total'        => 'total',
-			'_order_version'      => 'version',
-			'_prices_include_tax' => 'prices_include_tax',
-		);
-
-		$props_to_update = $this->get_props_to_update( $order, $meta_key_to_props );
-		foreach ( $props_to_update as $meta_key => $prop ) {
+		
+		$props_to_update = $this->get_props_to_update( $order, $this->meta_props_to_keys );
+		foreach ( $props_to_update as $prop => $meta_key ) {
 			$value   = $order->{"get_$prop"}( 'edit' );
 			$updated = update_post_meta( $order->get_id(), $meta_key, $value );
 			if ( $updated ) {

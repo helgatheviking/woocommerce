@@ -58,6 +58,11 @@ class WC_Product_Data_Store_CPT extends WC_Data_Store_WP implements WC_Object_Da
 	 */
 	protected $extra_data_saved = false;
 
+	/**
+	 * Map the extra props to meta keys.
+	 */
+	protected $extra_data_to_meta = array();
+
 	/*
 	|--------------------------------------------------------------------------
 	| CRUD Methods
@@ -273,7 +278,8 @@ class WC_Product_Data_Store_CPT extends WC_Data_Store_WP implements WC_Object_Da
 		foreach ( $product->get_extra_data_keys() as $key ) {
 			$function = 'set_' . $key;
 			if ( is_callable( array( $product, $function ) ) ) {
-				$product->{$function}( get_post_meta( $product->get_id(), '_' . $key, true ) );
+				$meta_key = isset( $this->extra_data_to_meta[$key] ) ? $this->extra_data_to_meta[$key] : '_' . $key;
+				$product->{$function}( get_post_meta( $product->get_id(), $meta_key, true ) );
 			}
 		}
 	}
@@ -466,7 +472,8 @@ class WC_Product_Data_Store_CPT extends WC_Data_Store_WP implements WC_Object_Da
 				}
 				$function = 'get_' . $key;
 				if ( is_callable( array( $product, $function ) ) ) {
-					if ( update_post_meta( $product->get_id(), '_' . $key, $product->{$function}( 'edit' ) ) ) {
+					$meta_key = isset( $this->extra_data_to_meta[$key] ) ? $this->extra_data_to_meta[$key] : '_' . $key;
+					if ( update_post_meta( $product->get_id(), $meta_key, $product->{$function}( 'edit' ) ) ) {
 						$updated_props[] = $key;
 					}
 				}

@@ -91,10 +91,19 @@ class WC_Admin_Taxonomies {
 		<div class="form-field term-display-type-wrap">
 			<label for="display_type"><?php _e( 'Display type', 'woocommerce' ); ?></label>
 			<select id="display_type" name="display_type" class="postform">
-				<option value=""><?php _e( 'Default', 'woocommerce' ); ?></option>
-				<option value="products"><?php _e( 'Products', 'woocommerce' ); ?></option>
-				<option value="subcategories"><?php _e( 'Subcategories', 'woocommerce' ); ?></option>
-				<option value="both"><?php _e( 'Both', 'woocommerce' ); ?></option>
+				<?php
+					$display_types = apply_filters( 'woocommercer_category_display_types', 
+							array( '' => __( 'Default', 'woocommerce' ),
+									'products' => __( 'Products', 'woocommerce' ),
+									'subcategories' => __( 'Subcategories', 'woocommerce' ),
+									'both' => __( 'Both', 'woocommerce' ),
+								) 
+					);
+						
+					foreach ( $display_types as $display_type => $label ) {
+						printf( '<option value="%s">%s</option>', $display_type, $label );
+					} 
+					?>
 			</select>
 		</div>
 		<div class="form-field term-thumbnail-wrap">
@@ -199,10 +208,19 @@ class WC_Admin_Taxonomies {
 			<th scope="row" valign="top"><label><?php _e( 'Display type', 'woocommerce' ); ?></label></th>
 			<td>
 				<select id="display_type" name="display_type" class="postform">
-					<option value="" <?php selected( '', $display_type ); ?>><?php _e( 'Default', 'woocommerce' ); ?></option>
-					<option value="products" <?php selected( 'products', $display_type ); ?>><?php _e( 'Products', 'woocommerce' ); ?></option>
-					<option value="subcategories" <?php selected( 'subcategories', $display_type ); ?>><?php _e( 'Subcategories', 'woocommerce' ); ?></option>
-					<option value="both" <?php selected( 'both', $display_type ); ?>><?php _e( 'Both', 'woocommerce' ); ?></option>
+					<?php
+					$display_types = apply_filters( 'woocommercer_category_display_types', 
+							array( '' => __( 'Default', 'woocommerce' ),
+									'products' => __( 'Products', 'woocommerce' ),
+									'subcategories' => __( 'Subcategories', 'woocommerce' ),
+									'both' => __( 'Both', 'woocommerce' ),
+								) 
+					);
+						
+					foreach ( $display_types as $display_type => $label ) {
+						printf( '<option value="%s">%s</option>', $display_type, $label );
+					} 
+					?>
 				</select>
 			</td>
 		</tr>

@@ -166,6 +166,7 @@ final class WooCommerce {
 	private function init_hooks() {
 		register_activation_hook( WC_PLUGIN_FILE, array( 'WC_Install', 'install' ) );
 		register_shutdown_function( array( $this, 'log_errors' ) );
+		add_action( 'plugins_loaded', array( $this, 'extensions_init' ), 20 );
 		add_action( 'after_setup_theme', array( $this, 'setup_environment' ) );
 		add_action( 'after_setup_theme', array( $this, 'include_template_functions' ), 11 );
 		add_action( 'init', array( $this, 'init' ), 0 );
@@ -196,6 +197,15 @@ final class WooCommerce {
 		}
 	}
 
+	/**
+	 * Launch WooCommerce-dependent extensions.
+	 *
+	 * @since 3.6.0
+	 */
+	public function extensions_init() {
+		do_action( 'woocommerce_extensions_init' );
+	}
+	
 	/**
 	 * Define WC Constants.
 	 */

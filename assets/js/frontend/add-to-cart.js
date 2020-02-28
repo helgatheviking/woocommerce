@@ -66,6 +66,11 @@ jQuery( function( $ ) {
 
 			e.preventDefault();
 
+			// Allow 3rd parties to validate and quit early.
+			if( false === $( document.body ).triggerHandler( 'validate_adding_to_cart', [ $thisbutton ] ) ) {
+				return false;
+			}
+
 			$thisbutton.removeClass( 'added' );
 			$thisbutton.addClass( 'loading' );
 

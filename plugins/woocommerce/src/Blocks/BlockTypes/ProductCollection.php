@@ -104,6 +104,8 @@ class ProductCollection extends AbstractBlock {
 		// Provide location context into block's context.
 		add_filter( 'render_block_context', array( $this, 'provide_location_context_for_inner_blocks' ), 11, 1 );
 
+		// Consume reload context from pagination block.
+		add_filter( 'block_type_metadata', array( $this, 'uses_context_for_pagination' ), 10, 3 );
 
 		// Disable block render if the ProductTemplate block is empty.
 		add_filter(
@@ -283,6 +285,19 @@ class ProductCollection extends AbstractBlock {
 			$location_context = ProductCollectionUtils::parse_frontend_location_context();
 		}
 		return $location_context;
+	}
+
+	/**
+	 * Consume 'forcePageReload' context from the core/pagination block.
+	 *
+	 * @param array $metadata Metadata for registering a block type.
+	 * @return array
+	 */
+	public function uses_context_for_pagination( $metadata ) {
+		if ( 'core/query-pagination' === $metadata['name'] ) {
+			$metadata['usesContext'][] = 'forcePageReload';
+		}
+		return $metadata;
 	}
 
 	/**

@@ -54,7 +54,7 @@ final class BlockTypesController {
 	 * Initialize class features.
 	 */
 	protected function init() { // phpcs:ignore WooCommerce.Functions.InternalInjectionMethod.MissingPublic
-		add_action( 'init', array( $this, 'register_blocks' ) );
+		add_action( 'init', array( $this, 'register_blocks' ), 5 );
 		add_action( 'wp_loaded', array( $this, 'register_block_patterns' ) );
 		add_filter( 'block_categories_all', array( $this, 'register_block_categories' ), 10, 2 );
 		add_filter( 'render_block', array( $this, 'add_data_attributes' ), 10, 2 );

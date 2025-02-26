@@ -9,7 +9,7 @@ use Automattic\Jetpack\Constants;
  *
  * Important: For internal use only by the Automattic\WooCommerce\Internal\Brands package.
  *
- * @version 9.5.0
+ * @version x.x.x
  */
 class WC_Brands {
 
@@ -536,6 +536,8 @@ class WC_Brands {
 	public function output_product_brand_list( $atts ) {
 		$args = shortcode_atts(
 			array(
+				'order'	            => 'ASC',
+				'orderby'           => 'name',
 				'show_top_links'    => true,
 				'show_empty'        => true,
 				'show_empty_brands' => false,
@@ -543,6 +545,8 @@ class WC_Brands {
 			$atts
 		);
 
+		$order			   = $args['order'];
+		$orderby		   = $args['orderby'];
 		$show_top_links    = $args['show_top_links'];
 		$show_empty        = $args['show_empty'];
 		$show_empty_brands = $args['show_empty_brands'];
@@ -561,7 +565,14 @@ class WC_Brands {
 
 		$product_brands = array();
         //phpcs:disable
-		$terms          = get_terms( array( 'taxonomy' => 'product_brand', 'hide_empty' => ( $show_empty_brands ? false : true ) ) );
+		$terms          = get_terms(
+			array(
+				'taxonomy' => 'product_brand',
+				'order'	 => $order,
+				'orderby' => $orderby,
+				'hide_empty' => ( $show_empty_brands ? false : true )
+		),
+		);
 		$alphabet       = apply_filters( 'woocommerce_brands_list_alphabet', range( 'a', 'z' ) );
 		$numbers        = apply_filters( 'woocommerce_brands_list_numbers', '0-9' );
 
